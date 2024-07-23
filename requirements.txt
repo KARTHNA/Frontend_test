@@ -1,0 +1,7 @@
+streamlit 
+requests
+pybase64
+pillow
+matplotlib
+seaborn
+Flask

@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import base64
 import io
+import pandas as pd
 from PIL import Image
 
 API_URL = "http://localhost:8888/process_request"
@@ -18,6 +19,9 @@ if 'response' not in st.session_state:
 
 if 'plots' not in st.session_state:
     st.session_state.plots = {}
+
+if 'table_data' not in st.session_state:
+    st.session_state.table_data = []
 
 # Input field for the user query
 user_query = st.text_input("Enter your query:", value=st.session_state.user_query, key='query_input')
@@ -40,9 +44,11 @@ if st.button("Enter"):
         if response:
             st.session_state.response = response.get('remarks', 'No remarks available')
             st.session_state.plots = response.get('plots', {})  # Expecting a dictionary of plots
+            st.session_state.table_data = response.get('table_data', [])  # Expecting a list of tables
         else:
             st.session_state.response = "No response received from the backend."
             st.session_state.plots = {}
+            st.session_state.table_data = []
         st.session_state.user_query = user_query
 
 # Display the response
@@ -59,9 +65,18 @@ if st.session_state.plots:
             img = Image.open(io.BytesIO(img_data))
             st.image(img, caption=f"Generated {plot_type.capitalize()} Plot")
 
+# Display table data if available
+if st.session_state.table_data:
+    st.write("Table Data:")
+    for table in st.session_state.table_data:
+        if table:  # Check if table is not empty
+            df = pd.DataFrame(table, index=range(len(table)))  # Create DataFrame with default index
+            st.table(df)
+
 # Clear button to reset input and response
 if st.button("Clear"):
     st.session_state.user_query = ""
     st.session_state.response = ""
     st.session_state.plots = {}
+    st.session_state.table_data = []
     st.experimental_rerun()  # Refresh the app to clear the input field
